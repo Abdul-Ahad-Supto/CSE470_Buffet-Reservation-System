@@ -1,0 +1,106 @@
+<svg viewBox="0 0 1000 700" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="500" y="30" text-anchor="middle" font-size="20" font-weight="bold" fill="#333">
+    Online Buffet Reservation System
+  </text>
+  
+  <!-- System boundary -->
+  <rect x="200" y="60" width="600" height="580" fill="none" stroke="#666" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="500" y="85" text-anchor="middle" font-size="14" font-weight="bold" fill="#666">System</text>
+  
+  <!-- Actors -->
+  <!-- Customer/User -->
+  <g id="customer">
+    <ellipse cx="80" cy="150" rx="15" ry="10" fill="#f0f0f0" stroke="#333"/>
+    <line x1="80" y1="160" x2="80" y2="200" stroke="#333" stroke-width="2"/>
+    <line x1="60" y1="180" x2="100" y2="180" stroke="#333" stroke-width="2"/>
+    <line x1="80" y1="200" x2="60" y2="230" stroke="#333" stroke-width="2"/>
+    <line x1="80" y1="200" x2="100" y2="230" stroke="#333" stroke-width="2"/>
+    <text x="80" y="250" text-anchor="middle" font-size="12" fill="#333">Customers/Users</text>
+  </g>
+  
+  <!-- Management -->
+  <g id="management">
+    <ellipse cx="920" cy="400" rx="15" ry="10" fill="#f0f0f0" stroke="#333"/>
+    <line x1="920" y1="410" x2="920" y2="450" stroke="#333" stroke-width="2"/>
+    <line x1="900" y1="430" x2="940" y2="430" stroke="#333" stroke-width="2"/>
+    <line x1="920" y1="450" x2="900" y2="480" stroke="#333" stroke-width="2"/>
+    <line x1="920" y1="450" x2="940" y2="480" stroke="#333" stroke-width="2"/>
+    <text x="920" y="500" text-anchor="middle" font-size="12" fill="#333">Management</text>
+  </g>
+  
+  <!-- Use Cases (Ellipses) -->
+  <!-- Login -->
+  <ellipse cx="300" cy="140" rx="60" ry="25" fill="#e6f3ff" stroke="#333"/>
+  <text x="300" y="145" text-anchor="middle" font-size="11" fill="#333">Login</text>
+  
+  <!-- Make Reservations -->
+  <ellipse cx="450" cy="180" rx="80" ry="25" fill="#e6f3ff" stroke="#333"/>
+  <text x="450" y="185" text-anchor="middle" font-size="11" fill="#333">Make Reservations</text>
+  
+  <!-- Check Menu, Buffet Timing and Prices -->
+  <ellipse cx="350" cy="240" rx="90" ry="30" fill="#e6f3ff" stroke="#333"/>
+  <text x="350" y="235" text-anchor="middle" font-size="10" fill="#333">Check Menu, Buffet</text>
+  <text x="350" y="248" text-anchor="middle" font-size="10" fill="#333">Timing and Prices</text>
+  
+  <!-- See Seat Status -->
+  <ellipse cx="580" cy="240" rx="85" ry="30" fill="#e6f3ff" stroke="#333"/>
+  <text x="580" y="235" text-anchor="middle" font-size="10" fill="#333">See Seat Status</text>
+  <text x="580" y="248" text-anchor="middle" font-size="10" fill="#333">(Current Date)</text>
+  
+  <!-- Cancel Reservation -->
+  <ellipse cx="400" cy="320" rx="80" ry="25" fill="#e6f3ff" stroke="#333"/>
+  <text x="400" y="325" text-anchor="middle" font-size="11" fill="#333">Cancel Reservation</text>
+  
+  <!-- Submit Feedback -->
+  <ellipse cx="300" cy="380" rx="75" ry="25" fill="#e6f3ff" stroke="#333"/>
+  <text x="300" y="385" text-anchor="middle" font-size="11" fill="#333">Submit Feedback</text>
+  
+  <!-- Update Reservation Status -->
+  <ellipse cx="650" cy="380" rx="85" ry="30" fill="#e6f3ff" stroke="#333"/>
+  <text x="650" y="375" text-anchor="middle" font-size="10" fill="#333">Update Reservation</text>
+  <text x="650" y="388" text-anchor="middle" font-size="10" fill="#333">Status</text>
+  
+  <!-- Verify Information for reservation -->
+  <ellipse cx="450" cy="450" rx="95" ry="30" fill="#fff2e6" stroke="#333"/>
+  <text x="450" y="445" text-anchor="middle" font-size="10" fill="#333">Verify Information</text>
+  <text x="450" y="458" text-anchor="middle" font-size="10" fill="#333">for reservation</text>
+  
+  <!-- Verify Password -->
+  <ellipse cx="300" cy="520" rx="75" ry="25" fill="#fff2e6" stroke="#333"/>
+  <text x="300" y="525" text-anchor="middle" font-size="11" fill="#333">Verify Password</text>
+  
+  <!-- Display Errors -->
+  <ellipse cx="600" cy="520" rx="70" ry="25" fill="#ffe6e6" stroke="#333"/>
+  <text x="600" y="525" text-anchor="middle" font-size="11" fill="#333">Display Errors</text>
+  
+  <!-- Connections from Customers/Users -->
+  <line x1="100" y1="180" x2="240" y2="140" stroke="#333"/>
+  <line x1="100" y1="200" x2="370" y2="180" stroke="#333"/>
+  <line x1="100" y1="210" x2="260" y2="240" stroke="#333"/>
+  <line x1="100" y1="220" x2="495" y2="240" stroke="#333"/>
+  <line x1="100" y1="230" x2="320" y2="320" stroke="#333"/>
+  <line x1="100" y1="240" x2="225" y2="380" stroke="#333"/>
+  
+  <!-- Connections from Management -->
+  <line x1="900" y1="400" x2="735" y2="380" stroke="#333"/>
+  <line x1="900" y1="420" x2="670" y2="520" stroke="#333"/>
+  
+  <!-- Include relationships -->
+  <line x1="370" y1="180" x2="355" y2="450" stroke="#666" stroke-dasharray="3,3"/>
+  <text x="365" y="315" font-size="10" fill="#666">«include»</text>
+  
+  <line x1="240" y1="140" x2="225" y2="520" stroke="#666" stroke-dasharray="3,3"/>
+  <text x="200" y="330" font-size="10" fill="#666">«include»</text>
+  
+  <!-- Extend relationships -->
+  <line x1="545" y1="450" x2="530" y2="520" stroke="#666" stroke-dasharray="3,3"/>
+  <text x="550" y="485" font-size="10" fill="#666">«extend»</text>
+  
+  <line x1="650" y1="410" x2="630" y2="495" stroke="#666" stroke-dasharray="3,3"/>
+  <text x="660" y="450" font-size="10" fill="#666">«extend»</text>
+  
+  <!-- Student Information -->
+  <text x="850" y="670" font-size="12" fill="#333" font-weight="bold">Abdul Ahad</text>
+  <text x="850" y="685" font-size="10" fill="#666">ID: 24141136</text>
+</svg>
