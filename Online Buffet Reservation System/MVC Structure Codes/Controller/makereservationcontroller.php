@@ -1,21 +1,21 @@
 <?php
-// /Controller/makereservationcontroller.php
-
-// These lines are for debugging. They will show you any new errors.
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
 session_start();
 
-// Go up one level (from Controller) and down into Model to include files
+// Check if user is logged in
+if (!isset($_SESSION['logged_in']) || !$_SESSION['logged_in']) {
+    $_SESSION['message'] = "Please login to make a reservation.";
+    header("Location: ../View/login.php");
+    exit();
+}
+
 require_once '../Model/pdov2.php';
 require_once '../Model/makereservationmodal.php';
 
-// Get all the data from the form into an array
+// Get user details from session
 $reservation_data = [
     'numberofguest' => $_POST['numberofguest'] ?? 0,
-    'name' => $_POST['name'] ?? '',
-    'email' => $_POST['email'] ?? '',
+    'name' => $_POST['name'] ?? $_SESSION['username'],
+    'email' => $_POST['email'] ?? $_SESSION['email'],
     'phone' => $_POST['phone'] ?? '',
     'address' => $_POST['address'] ?? '',
     'date' => $_POST['date'] ?? '',
@@ -23,16 +23,24 @@ $reservation_data = [
     'branch' => $_POST['branch'] ?? ''
 ];
 
-// Call the function from the Model, passing the database connection and the data
-$success = make_reservation_in_db($pdo, $reservation_data);
-
-// Set the session message based on success or failure
-if ($success) {
-    $_SESSION['message'] = strtoupper($reservation_data['name']) . ", thank you! Your reservation for " . htmlspecialchars($reservation_data['numberofguest']) . " guests is confirmed.";
-} else {
-    $_SESSION['message'] = "Sorry, there was an error making your reservation. Please check your details and try again.";
+// Validate future date
+if (strtotime($reservation_data['date']) < strtotime('today')) {
+    $_SESSION['message'] = "Please select a future date for reservation.";
+    header("Location: ../View/indexv2.php");
+    exit();
 }
 
-// Redirect back to the view page
-header("Location: /CSE470_Buffet-Reservation-System-main/Online Buffet Reservation System/MVC Structure Codes/View/indexv2.php");
-exit(); // Always call exit() after a header redirect.
+// Make reservation
+$result = make_reservation_in_db($pdo, $reservation_data);
+
+if ($result['success']) {
+    $_SESSION['message'] = strtoupper($reservation_data['name']) . ", thank you! Your reservation for " . 
+                          $reservation_data['numberofguest'] . " guests is confirmed. " .
+                          "Total: ৳" . number_format($result['total_price'], 2) . 
+                          " (Reservation ID: #" . $result['reservation_id'] . ")";
+} else {
+    $_SESSION['message'] = "Sorry, there was an error making your reservation. Please try again.";
+}
+
+header("Location: ../View/indexv2.php");
+exit();
