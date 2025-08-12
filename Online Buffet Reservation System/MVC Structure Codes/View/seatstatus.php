@@ -1,4 +1,5 @@
-// View/seat-status.php
+<?php
+// View/seatstatus.php - Fixed version
 session_start();
 require_once '../Model/pdov2.php';
 require_once '../Model/seatstatusmodal.php';
@@ -12,6 +13,11 @@ $selectedBranch = $_GET['branch'] ?? null;
 
 $seatStatus = $seatModel->getSeatStatus($selectedDate, $selectedBranch);
 $reservations = $seatModel->getReservationsByDate($selectedDate, $selectedBranch);
+
+// Ensure variables are arrays
+if (!is_array($seatStatus)) $seatStatus = [];
+if (!is_array($branches)) $branches = [];
+if (!is_array($reservations)) $reservations = [];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -72,6 +78,11 @@ $reservations = $seatModel->getReservationsByDate($selectedDate, $selectedBranch
             border-radius: 10px;
             margin-bottom: 30px;
         }
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
     </style>
 </head>
 <body>
@@ -123,18 +134,18 @@ $reservations = $seatModel->getReservationsByDate($selectedDate, $selectedBranch
     <div class="container">
         <!-- Filter Section -->
         <div class="filter-section">
-            <form method="GET" action="seat-status.php" class="form-inline justify-content-center">
+            <form method="GET" action="seatstatus.php" class="form-inline justify-content-center">
                 <div class="form-group mx-2">
                     <label for="date" class="mr-2">Date:</label>
                     <input type="date" class="form-control" id="date" name="date" 
-                           value="<?php echo $selectedDate; ?>" min="<?php echo date('Y-m-d'); ?>">
+                           value="<?php echo htmlspecialchars($selectedDate); ?>" min="<?php echo date('Y-m-d'); ?>">
                 </div>
                 <div class="form-group mx-2">
                     <label for="branch" class="mr-2">Branch:</label>
                     <select class="form-control" id="branch" name="branch">
                         <option value="">All Branches</option>
                         <?php foreach ($branches as $branch): ?>
-                            <option value="<?php echo $branch['branch_id']; ?>" 
+                            <option value="<?php echo htmlspecialchars($branch['branch_id']); ?>" 
                                     <?php echo $selectedBranch == $branch['branch_id'] ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($branch['branch_name']); ?>
                             </option>
@@ -149,114 +160,192 @@ $reservations = $seatModel->getReservationsByDate($selectedDate, $selectedBranch
 
         <!-- Seat Status Display -->
         <div class="row">
-            <?php 
-            // Group status by branch
+            <?php
+            // Replace the seat status display logic in your seatstatus.php
+            // This section should come after the filter section
+
+            // Seat Status Display with Fixed Logic
+            $allSessions = ['BREAKFAST', 'LUNCH', 'DINNER'];
+
+            // Group status by branch and ensure all sessions are represented
             $statusByBranch = [];
-            foreach ($seatStatus as $status) {
-                $statusByBranch[$status['branch_name']][] = $status;
-            }
-            
-            // If no data, show default for all branches
-            if (empty($statusByBranch)) {
-                foreach ($branches as $branch) {
-                    if (!$selectedBranch || $selectedBranch == $branch['branch_id']) {
-                        $statusByBranch[$branch['branch_name']] = [
-                            ['session' => 'BREAKFAST', 'total_seats' => 100, 'reserved_seats' => 0, 'available_seats' => 100],
-                            ['session' => 'LUNCH', 'total_seats' => 100, 'reserved_seats' => 0, 'available_seats' => 100],
-                            ['session' => 'DINNER', 'total_seats' => 100, 'reserved_seats' => 0, 'available_seats' => 100]
+
+            // First, initialize all branches with all sessions (default values)
+            foreach ($branches as $branch) {
+                if (!$selectedBranch || $selectedBranch == $branch['branch_id']) {
+                    $statusByBranch[$branch['branch_name']] = [];
+                    
+                    // Initialize all sessions with default values
+                    foreach ($allSessions as $session) {
+                        $statusByBranch[$branch['branch_name']][$session] = [
+                            'session' => $session,
+                            'total_seats' => 100,
+                            'reserved_seats' => 0,
+                            'available_seats' => 100,
+                            'branch_id' => $branch['branch_id']
                         ];
                     }
                 }
             }
-            
-            foreach ($statusByBranch as $branchName => $sessions): ?>
-                <div class="col-md-6 col-lg-4">
-                    <h4 class="mb-3"><?php echo htmlspecialchars($branchName); ?></h4>
-                    <?php foreach ($sessions as $session): 
-                        $availableSeats = $session['available_seats'] ?? ($session['total_seats'] - $session['reserved_seats']);
-                        $totalSeats = $session['total_seats'] ?? 100;
-                        $percentage = ($availableSeats / $totalSeats) * 100;
-                        
-                        if ($percentage >= 70) {
-                            $statusClass = 'availability-high';
-                        } elseif ($percentage >= 30) {
-                            $statusClass = 'availability-medium';
-                        } else {
-                            $statusClass = 'availability-low';
-                        }
-                    ?>
-                    <div class="status-card <?php echo $statusClass; ?>">
-                        <h5><?php echo $session['session']; ?></h5>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h3><?php echo $availableSeats; ?>/<?php echo $totalSeats; ?></h3>
-                                <small>Available Seats</small>
-                            </div>
-                            <div class="text-right">
-                                <div class="progress" style="width: 100px; height: 10px;">
-                                    <div class="progress-bar bg-white" style="width: <?php echo $percentage; ?>%"></div>
-                                </div>
-                                <small><?php echo round($percentage); ?>% Available</small>
-                            </div>
-                        </div>
-                        
-                        <!-- Visual seat representation -->
-                        <div class="seat-visual">
-                            <?php for ($i = 0; $i < min(20, $totalSeats); $i++): ?>
-                                <div class="seat <?php echo $i < ($session['reserved_seats'] ?? 0) ? 'seat-reserved' : 'seat-available'; ?>"></div>
-                            <?php endfor; ?>
-                            <?php if ($totalSeats > 20): ?>
-                                <small>...</small>
-                            <?php endif; ?>
-                        </div>
-                        
-                        <?php if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] && $availableSeats > 0): ?>
-                            <a href="indexv2.php#reserveform" class="btn btn-light btn-sm mt-3">
-                                Book Now
-                            </a>
-                        <?php endif; ?>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php endforeach; ?>
-        </div>
 
-        <!-- Recent Reservations (Admin View) -->
-        <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+            // Now override with actual data from database
+            foreach ($seatStatus as $status) {
+                if (isset($statusByBranch[$status['branch_name']])) {
+                    $statusByBranch[$status['branch_name']][$status['session']] = [
+                        'session' => $status['session'],
+                        'total_seats' => $status['total_seats'],
+                        'reserved_seats' => $status['reserved_seats'],
+                        'available_seats' => $status['total_seats'] - $status['reserved_seats'],
+                        'branch_id' => $status['branch_id'] ?? null
+                    ];
+                }
+            }
+            ?>
+
+            <!-- Seat Status Display -->
+            <div class="row">
+                <?php if (empty($statusByBranch)): ?>
+                    <div class="col-12">
+                        <div class="no-data">
+                            <i class="fa fa-calendar-times-o fa-3x mb-3"></i>
+                            <h4>No data available</h4>
+                            <p>Please select a valid date and branch to view seat availability.</p>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <?php foreach ($statusByBranch as $branchName => $sessions): ?>
+                        <div class="col-md-6 col-lg-4">
+                            <h4 class="mb-3"><?php echo htmlspecialchars($branchName); ?></h4>
+                            
+                            <?php 
+                            // Sort sessions in proper order
+                            $orderedSessions = [];
+                            foreach ($allSessions as $sessionName) {
+                                if (isset($sessions[$sessionName])) {
+                                    $orderedSessions[] = $sessions[$sessionName];
+                                }
+                            }
+                            
+                            foreach ($orderedSessions as $session): 
+                                $availableSeats = $session['available_seats'];
+                                $totalSeats = $session['total_seats'];
+                                $reservedSeats = $session['reserved_seats'];
+                                $percentage = $totalSeats > 0 ? ($availableSeats / $totalSeats) * 100 : 0;
+                                
+                                if ($percentage >= 70) {
+                                    $statusClass = 'availability-high';
+                                } elseif ($percentage >= 30) {
+                                    $statusClass = 'availability-medium';
+                                } else {
+                                    $statusClass = 'availability-low';
+                                }
+                                
+                                // Session timing display
+                                $sessionTimes = [
+                                    'BREAKFAST' => '9:00 AM - 11:00 AM',
+                                    'LUNCH' => '2:00 PM - 5:00 PM',
+                                    'DINNER' => '7:00 PM - 10:00 PM'
+                                ];
+                            ?>
+                            <div class="status-card <?php echo $statusClass; ?>">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 class="mb-0"><?php echo htmlspecialchars($session['session']); ?></h5>
+                                    <?php if ($reservedSeats > 0): ?>
+                                        <span class="badge badge-light"><?php echo $reservedSeats; ?> booked</span>
+                                    <?php endif; ?>
+                                </div>
+                                
+                                <small class="d-block mb-3" style="opacity: 0.8;">
+                                    <?php echo $sessionTimes[$session['session']] ?? 'Time TBD'; ?>
+                                </small>
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h3><?php echo $availableSeats; ?>/<?php echo $totalSeats; ?></h3>
+                                        <small>Available Seats</small>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="progress" style="width: 100px; height: 10px; background-color: rgba(255,255,255,0.3);">
+                                            <div class="progress-bar bg-white" style="width: <?php echo $percentage; ?>%"></div>
+                                        </div>
+                                        <small><?php echo round($percentage); ?>% Available</small>
+                                    </div>
+                                </div>
+                                
+                                <!-- Visual seat representation -->
+                                <div class="seat-visual">
+                                    <?php for ($i = 0; $i < min(25, $totalSeats); $i++): ?>
+                                        <div class="seat <?php echo $i < $reservedSeats ? 'seat-reserved' : 'seat-available'; ?>" 
+                                            title="Seat <?php echo $i + 1; ?>"></div>
+                                    <?php endfor; ?>
+                                    <?php if ($totalSeats > 25): ?>
+                                        <small class="ml-2">+<?php echo $totalSeats - 25; ?> more</small>
+                                    <?php endif; ?>
+                                </div>
+                                
+                                <!-- Action buttons -->
+                                <div class="mt-3">
+                                    <?php if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] && $availableSeats > 0): ?>
+                                        <a href="indexv2.php#reserveform" class="btn btn-light btn-sm">
+                                            <i class="fa fa-calendar-plus-o"></i> Book Now
+                                        </a>
+                                    <?php elseif ($availableSeats <= 0): ?>
+                                        <button class="btn btn-secondary btn-sm" disabled>
+                                            <i class="fa fa-ban"></i> Fully Booked
+                                        </button>
+                                    <?php else: ?>
+                                        <a href="login.php" class="btn btn-light btn-sm">
+                                            <i class="fa fa-sign-in"></i> Login to Book
+                                        </a>
+                                    <?php endif; ?>
+                                    
+                                    <!-- Show reservation details for admin -->
+                                    <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin' && $reservedSeats > 0): ?>
+                                        <button class="btn btn-outline-light btn-sm ml-1" onclick="showReservationDetails('<?php echo $branchName; ?>', '<?php echo $session['session']; ?>')">
+                                            <i class="fa fa-eye"></i> Details
+                                        </button>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+                    <!-- Recent Reservations (Admin View) -->
+        <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin' && !empty($reservations)): ?>
         <div class="row mt-5">
             <div class="col-12">
                 <h3>Recent Reservations for <?php echo date('F j, Y', strtotime($selectedDate)); ?></h3>
                 <div class="table-responsive reservation-list">
                     <table class="table table-striped">
-                        <thead>
+                        <thead class="thead-dark">
                             <tr>
                                 <th>ID</th>
                                 <th>Customer</th>
                                 <th>Branch</th>
                                 <th>Session</th>
                                 <th>Guests</th>
+                                <th>Phone</th>
                                 <th>Status</th>
-                                <th>Actions</th>
+                                <th>Time</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($reservations as $res): ?>
                             <tr>
-                                <td>#<?php echo $res['reservation_id']; ?></td>
+                                <td>#<?php echo htmlspecialchars($res['reservation_id']); ?></td>
                                 <td><?php echo htmlspecialchars($res['Customer_name']); ?></td>
                                 <td><?php echo htmlspecialchars($res['branch_name']); ?></td>
                                 <td><?php echo htmlspecialchars($res['Session']); ?></td>
-                                <td><?php echo $res['Numberofguest']; ?></td>
+                                <td><?php echo htmlspecialchars($res['Numberofguest']); ?></td>
+                                <td><?php echo htmlspecialchars($res['customer_phone']); ?></td>
                                 <td>
                                     <span class="badge badge-<?php echo $res['Status'] === 'confirm' ? 'success' : 'secondary'; ?>">
-                                        <?php echo ucfirst($res['Status']); ?>
+                                        <?php echo ucfirst(htmlspecialchars($res['Status'])); ?>
                                     </span>
                                 </td>
-                                <td>
-                                    <button class="btn btn-sm btn-info" onclick="viewDetails(<?php echo $res['reservation_id']; ?>)">
-                                        <i class="fa fa-eye"></i>
-                                    </button>
-                                </td>
+                                <td><?php echo date('H:i', strtotime($res['created_at'])); ?></td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -265,6 +354,30 @@ $reservations = $seatModel->getReservationsByDate($selectedDate, $selectedBranch
             </div>
         </div>
         <?php endif; ?>
+
+        <!-- Legend -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Legend</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <span class="seat seat-available mr-2"></span>
+                                <small>Available Seats</small>
+                            </div>
+                            <div class="col-md-4">
+                                <span class="seat seat-reserved mr-2"></span>
+                                <small>Reserved Seats</small>
+                            </div>
+                            <div class="col-md-4">
+                                <small><strong>Green:</strong> 70%+ available, <strong>Orange:</strong> 30-70%, <strong>Red:</strong> &lt;30%</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Footer -->
@@ -283,15 +396,32 @@ $reservations = $seatModel->getReservationsByDate($selectedDate, $selectedBranch
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     
     <script>
-        // Auto-refresh every 30 seconds
-        setTimeout(function() {
-            location.reload();
-        }, 30000);
+        // Auto-refresh every 30 seconds (optional)
+        // setTimeout(function() {
+        //     location.reload();
+        // }, 30000);
         
-        function viewDetails(id) {
-            // Implement view details modal
-            alert('View details for reservation #' + id);
-        }
+        // Form validation
+        $(document).ready(function() {
+            $('form').on('submit', function(e) {
+                const date = $('#date').val();
+                if (!date) {
+                    alert('Please select a date');
+                    e.preventDefault();
+                    return false;
+                }
+                
+                const selectedDate = new Date(date);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (selectedDate < today) {
+                    alert('Please select a current or future date');
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        });
     </script>
 </body>
 </html>

@@ -23,6 +23,7 @@ try {
     header('Content-Type: application/json');
 
     switch ($action) {
+        // Replace the registration case in authcontroller.php
         case 'register':
             try {
                 $data = [
@@ -32,29 +33,50 @@ try {
                     'password' => $_POST['password'] ?? ''
                 ];
                 
+                // Log the incoming data
+                error_log("Registration attempt: " . json_encode($data));
+                
                 // Validate input
                 if (empty($data['username']) || empty($data['email']) || empty($data['phone']) || empty($data['password'])) {
-                    echo json_encode(['success' => false, 'message' => 'All fields are required']);
+                    $response = ['success' => false, 'message' => 'All fields are required'];
+                    error_log("Validation failed: " . json_encode($response));
+                    echo json_encode($response);
                     exit;
                 }
                 
                 // Additional validation
                 if (strlen($data['password']) < 6) {
-                    echo json_encode(['success' => false, 'message' => 'Password must be at least 6 characters']);
+                    $response = ['success' => false, 'message' => 'Password must be at least 6 characters'];
+                    error_log("Password validation failed: " . json_encode($response));
+                    echo json_encode($response);
                     exit;
                 }
                 
                 if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-                    echo json_encode(['success' => false, 'message' => 'Invalid email format']);
+                    $response = ['success' => false, 'message' => 'Invalid email format'];
+                    error_log("Email validation failed: " . json_encode($response));
+                    echo json_encode($response);
                     exit;
                 }
                 
                 $result = $userModel->register($data);
+                
+                // Log the result
+                error_log("Registration result: " . json_encode($result));
+                
+                // Ensure we always return JSON
+                header('Content-Type: application/json');
                 echo json_encode($result);
+                exit;
                 
             } catch (Exception $e) {
+                $errorResponse = ['success' => false, 'message' => 'Registration failed: ' . $e->getMessage()];
                 error_log("Registration error: " . $e->getMessage());
-                echo json_encode(['success' => false, 'message' => 'Registration failed: ' . $e->getMessage()]);
+                error_log("Registration error response: " . json_encode($errorResponse));
+                
+                header('Content-Type: application/json');
+                echo json_encode($errorResponse);
+                exit;
             }
             break;
             

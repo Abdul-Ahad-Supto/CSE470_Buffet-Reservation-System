@@ -1,0 +1,14 @@
+[12-Aug-2025 21:25:13 Europe/Berlin] Auth request: action=login, data={"action":"login","username":"ahadsupto44@gmail.com","password":"Leonelmessi@1"}
+[12-Aug-2025 21:25:22 Europe/Berlin] Auth request: action=login, data={"action":"login","username":"ahadsupto44@gmail.com","password":"Leonelmessi@1"}
+[12-Aug-2025 21:27:04 Europe/Berlin] Auth request: action=login, data={"action":"login","username":"ahadsupto44@gmail.com","password":"Leonelmessi@1"}
+[12-Aug-2025 21:28:22 Europe/Berlin] Auth request: action=register, data={"action":"register","username":"ahadwqwq","email":"ahadsupto46@gmail.com","phone":"01580597730","password":"Leonelmessi@1","confirm_password":"Leonelmessi@1"}
+[12-Aug-2025 21:28:22 Europe/Berlin] Registration attempt: {"username":"ahadwqwq","email":"ahadsupto46@gmail.com","phone":"01580597730","password":"Leonelmessi@1"}
+[12-Aug-2025 21:28:22 Europe/Berlin] Registration result: {"success":true,"user_id":"6","message":"Registration successful. Please verify your phone number."}
+[12-Aug-2025 21:29:05 Europe/Berlin] Auth request: action=verify_otp, data={"action":"verify_otp","user_id":"6","otp":"686862"}
+[12-Aug-2025 21:29:20 Europe/Berlin] Auth request: action=login, data={"action":"login","username":"ahadsupto46@gmail.com","password":"Leonelmessi@1"}
+[12-Aug-2025 22:06:03 Europe/Berlin] Auth request: action=logout, data=[]
+[12-Aug-2025 22:07:29 Europe/Berlin] Auth request: action=register, data={"action":"register","username":"madhuri_mazumder","email":"madhurimazumder0007@gmail.com","phone":"01767435310","password":"madhurilovessupto","confirm_password":"madhurilovessupto"}
+[12-Aug-2025 22:07:29 Europe/Berlin] Registration attempt: {"username":"madhuri_mazumder","email":"madhurimazumder0007@gmail.com","phone":"01767435310","password":"madhurilovessupto"}
+[12-Aug-2025 22:07:29 Europe/Berlin] Registration result: {"success":true,"user_id":"7","message":"Registration successful. Please verify your phone number."}
+[12-Aug-2025 22:07:52 Europe/Berlin] Auth request: action=verify_otp, data={"action":"verify_otp","user_id":"7","otp":"976621"}
+[12-Aug-2025 22:08:08 Europe/Berlin] Auth request: action=login, data={"action":"login","username":"madhuri_mazumder","password":"madhurilovessupto"}

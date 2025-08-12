@@ -61,11 +61,11 @@ class UserModel {
         }
     }
     
-    // Login user
+    // Login user - THIS WAS MISSING!
     public function login($username, $password) {
         try {
             $stmt = $this->pdo->prepare("
-                SELECT user_id, username, email, password_hash, phone_verified, role 
+                SELECT user_id, username, email, password_hash, phone_verified, role, phone 
                 FROM users 
                 WHERE (username = :username OR email = :username) AND is_active = TRUE
             ");
@@ -81,8 +81,34 @@ class UserModel {
                 return ['success' => false, 'message' => 'Invalid credentials'];
             }
             
+            // Check if phone is verified
             if (!$user['phone_verified']) {
-                return ['success' => false, 'message' => 'Please verify your phone number first', 'user_id' => $user['user_id']];
+                // Generate new OTP for unverified users
+                $otp = $this->generateOTP();
+                $otp_expiry = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+                
+                // Update OTP in database
+                $stmt = $this->pdo->prepare("
+                    UPDATE users 
+                    SET otp_code = :otp, otp_expiry = :otp_expiry 
+                    WHERE user_id = :user_id
+                ");
+                $stmt->execute([
+                    ':otp' => $otp,
+                    ':otp_expiry' => $otp_expiry,
+                    ':user_id' => $user['user_id']
+                ]);
+                
+                // Send OTP
+                $this->sendOTP($user['phone'], $otp);
+                
+                return [
+                    'success' => false, 
+                    'message' => 'Please verify your phone number first', 
+                    'user_id' => $user['user_id'],
+                    'phone' => $user['phone'],
+                    'requires_otp' => true
+                ];
             }
             
             // Update last login
@@ -102,7 +128,7 @@ class UserModel {
             return ['success' => false, 'message' => 'Login failed: ' . $e->getMessage()];
         }
     }
-    
+
     // Verify OTP
     public function verifyOTP($user_id, $otp) {
         try {
@@ -185,42 +211,63 @@ class UserModel {
         return str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
     }
     
-    // Send OTP (placeholder - implement actual SMS service)
+    // Send OTP (placeholder - implement actual SMS service) - FIXED VERSION
     private function sendOTP($phone, $otp) {
+        // Create logs directory if it doesn't exist
+        $logDir = '../logs';
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0777, true);
+        }
+        
         // In production, integrate with SMS service like Twilio, Nexmo, etc.
         // For testing, you can:
         // 1. Log to file
-        file_put_contents('../logs/otp.log', 
-            date('Y-m-d H:i:s') . " - Phone: $phone, OTP: $otp\n", 
-            FILE_APPEND
-        );
+        $logFile = $logDir . '/otp.log';
+        $logMessage = date('Y-m-d H:i:s') . " - Phone: $phone, OTP: $otp\n";
+        
+        // Check if we can write to the log file
+        if (is_writable(dirname($logFile)) || is_writable($logFile)) {
+            file_put_contents($logFile, $logMessage, FILE_APPEND | LOCK_EX);
+        } else {
+            // If can't write to file, log to PHP error log instead
+            error_log("OTP for $phone: $otp");
+        }
         
         // 2. Store in session for testing
         $_SESSION['test_otp'] = $otp;
+        $_SESSION['test_phone'] = $phone;
         
         // 3. In production, use SMS API:
         // $this->sendSMS($phone, "Your verification code is: $otp");
+        
+        return true;
     }
     
     // Log OTP verification
     private function logOTPVerification($user_id, $otp, $verified) {
-        $stmt = $this->pdo->prepare("
-            SELECT phone FROM users WHERE user_id = :user_id
-        ");
-        $stmt->execute([':user_id' => $user_id]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        $stmt = $this->pdo->prepare("
-            INSERT INTO otp_verification_log (phone, otp_code, is_verified, verified_at, ip_address)
-            VALUES (:phone, :otp, :verified, :verified_at, :ip)
-        ");
-        $stmt->execute([
-            ':phone' => $user['phone'],
-            ':otp' => $otp,
-            ':verified' => $verified,
-            ':verified_at' => $verified ? date('Y-m-d H:i:s') : null,
-            ':ip' => $_SERVER['REMOTE_ADDR'] ?? null
-        ]);
+        try {
+            $stmt = $this->pdo->prepare("
+                SELECT phone FROM users WHERE user_id = :user_id
+            ");
+            $stmt->execute([':user_id' => $user_id]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Check if the table exists before trying to insert
+            $stmt = $this->pdo->prepare("
+                INSERT INTO otp_verification_log (phone, otp_code, is_verified, verified_at, ip_address)
+                VALUES (:phone, :otp, :verified, :verified_at, :ip)
+            ");
+            $stmt->execute([
+                ':phone' => $user['phone'],
+                ':otp' => $otp,
+                ':verified' => $verified,
+                ':verified_at' => $verified ? date('Y-m-d H:i:s') : null,
+                ':ip' => $_SERVER['REMOTE_ADDR'] ?? null
+            ]);
+        } catch (PDOException $e) {
+            // If logging fails, just log the error but don't break the flow
+            error_log("OTP verification logging failed: " . $e->getMessage());
+        }
     }
     
     // Check if user is logged in

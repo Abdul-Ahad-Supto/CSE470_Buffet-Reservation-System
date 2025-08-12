@@ -53,17 +53,19 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
                         </div>
 
                         <!-- Alert Messages -->
-                        <?php if (isset($_SESSION['message'])): ?>
-                        <div class="alert alert-info alert-dismissible fade show" role="alert">
-                            <?php 
-                                echo htmlspecialchars($_SESSION['message']); 
-                                unset($_SESSION['message']);
-                            ?>
-                            <button type="button" class="close" data-dismiss="alert">
-                                <span>&times;</span>
-                            </button>
+                        <div id="alertContainer">
+                            <?php if (isset($_SESSION['message'])): ?>
+                            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                                <?php 
+                                    echo htmlspecialchars($_SESSION['message']); 
+                                    unset($_SESSION['message']);
+                                ?>
+                                <button type="button" class="close" data-dismiss="alert">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+                            <?php endif; ?>
                         </div>
-                        <?php endif; ?>
 
                         <!-- Login Form -->
                         <form id="loginForm" action="../Controller/authcontroller.php" method="POST">
@@ -101,7 +103,7 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
                                 </div>
                             </div>
 
-                            <button type="submit" class="btn btn-primary btn-block">Login</button>
+                            <button type="submit" class="btn btn-primary btn-block" id="loginBtn">Login</button>
                         </form>
 
                         <div class="text-center mt-3">
@@ -138,9 +140,29 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
             $(this).find('i').toggleClass('fa-eye fa-eye-slash');
         });
 
-        // Login form submission
+        // Show alert function
+        function showAlert(message, type) {
+            const alert = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="close" data-dismiss="alert">
+                        <span>&times;</span>
+                    </button>
+                </div>
+            `;
+            $('#alertContainer').html(alert);
+        }
+
+        // Login form submission - FIXED VERSION
         $('#loginForm').submit(function(e) {
             e.preventDefault();
+            
+            console.log('Form submitted'); // Debug log
+            
+            // Show loading state
+            const submitBtn = $('#loginBtn');
+            const originalText = submitBtn.text();
+            submitBtn.prop('disabled', true).text('Logging in...');
             
             $.ajax({
                 url: $(this).attr('action'),
@@ -148,23 +170,62 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
                 data: $(this).serialize(),
                 dataType: 'json',
                 success: function(response) {
-                    if (response.success) {
-                        window.location.href = 'indexv2.php';
+                    console.log('Login response received:', response); // Debug log
+                    
+                    if (response.success === true) {
+                        // Successful login - redirect to home
+                        console.log('Login successful, redirecting...');
+                        showAlert('Login successful! Redirecting...', 'success');
+                        setTimeout(function() {
+                            window.location.href = 'indexv2.php';
+                        }, 1000);
                     } else {
-                        if (response.user_id) {
-                            // Phone not verified
-                            if (confirm(response.message + '\nWould you like to verify now?')) {
-                                window.location.href = 'verify-phone.php?user_id=' + response.user_id;
-                            }
+                        // Handle different types of failures
+                        console.log('Login failed:', response);
+                        
+                        if (response.requires_otp === true && response.user_id) {
+                            // User needs OTP verification
+                            console.log('OTP required, redirecting to verification...');
+                            showAlert('Phone verification required. Redirecting...', 'warning');
+                            
+                            setTimeout(function() {
+                                // Redirect to OTP verification page
+                                const otpUrl = 'verify-phone.php?user_id=' + encodeURIComponent(response.user_id) + 
+                                              '&phone=' + encodeURIComponent(response.phone);
+                                console.log('Redirecting to:', otpUrl);
+                                window.location.href = otpUrl;
+                            }, 2000);
                         } else {
-                            alert(response.message);
+                            // Other login errors (wrong password, etc.)
+                            showAlert(response.message || 'Login failed. Please check your credentials.', 'danger');
                         }
                     }
                 },
-                error: function() {
-                    alert('An error occurred. Please try again.');
+                error: function(xhr, status, error) {
+                    console.error('AJAX error:', {
+                        status: status,
+                        error: error,
+                        responseText: xhr.responseText
+                    });
+                    
+                    // Try to parse error response
+                    try {
+                        const errorResponse = JSON.parse(xhr.responseText);
+                        showAlert(errorResponse.message || 'An error occurred during login.', 'danger');
+                    } catch(e) {
+                        showAlert('An error occurred during login. Please try again.', 'danger');
+                    }
+                },
+                complete: function() {
+                    // Reset button state
+                    submitBtn.prop('disabled', false).text(originalText);
                 }
             });
+        });
+
+        // Debug: Log when page loads
+        $(document).ready(function() {
+            console.log('Login page loaded');
         });
     </script>
 </body>

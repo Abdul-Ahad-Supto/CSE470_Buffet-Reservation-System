@@ -191,33 +191,52 @@
 
         // Registration form submission
         $('#registrationForm').submit(function(e) {
-            e.preventDefault();
-            
-            if ($('#password').val() !== $('#confirm_password').val()) {
-                alert('Passwords do not match!');
-                return false;
-            }
+    e.preventDefault();
+    
+    if ($('#password').val() !== $('#confirm_password').val()) {
+        alert('Passwords do not match!');
+        return false;
+    }
 
-            $.ajax({
-                url: $(this).attr('action'),
-                method: 'POST',
-                data: $(this).serialize(),
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        $('#user_id').val(response.user_id);
-                        $('#phoneDisplay').text($('#phone').val());
-                        $('#otpModal').modal('show');
-                        startCountdown(120); // 2 minutes countdown
-                    } else {
-                        alert(response.message);
-                    }
-                },
-                error: function() {
-                    alert('An error occurred. Please try again.');
+    // Show loading state
+    const submitBtn = $(this).find('button[type="submit"]');
+    const originalText = submitBtn.text();
+    submitBtn.prop('disabled', true).text('Registering...');
+
+    $.ajax({
+        url: $(this).attr('action'),
+        method: 'POST',
+        data: $(this).serialize(),
+        dataType: 'json',
+        success: function(response) {
+            console.log('Registration response:', response); // Debug log
+            
+            if (response.success) {
+                // Check if user_id exists
+                if (response.user_id) {
+                    $('#user_id').val(response.user_id);
+                    $('#phoneDisplay').text($('#phone').val());
+                    $('#otpModal').modal('show');
+                    startCountdown(120); // 2 minutes countdown
+                } else {
+                    // Fallback if no user_id but success
+                    alert('Registration successful! Please check your phone for OTP and then login.');
+                    window.location.href = 'login.php';
                 }
-            });
-        });
+            } else {
+                alert(response.message || 'Registration failed. Please try again.');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Registration error:', xhr.responseText); // Debug log
+            alert('An error occurred during registration. Please try again.');
+        },
+        complete: function() {
+            // Reset button state
+            submitBtn.prop('disabled', false).text(originalText);
+        }
+    });
+});
 
         // OTP form submission
         $('#otpForm').submit(function(e) {
