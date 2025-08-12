@@ -1,3 +1,4 @@
+<?php session_start(); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,6 +18,15 @@
 </head>
 
 <body>
+    <div class="row row-content">
+            <div class="col-12">
+                <?php
+                if (isset($_SESSION['message'])) {
+                    echo '<div class="alert alert-info">' . htmlspecialchars($_SESSION['message']) . '</div>';
+                    unset($_SESSION['message']);
+                }
+                ?>
+            </div>
     <nav class="navbar navbar-dark navbar-expand-sm fixed-top">
         <div class="container">
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#Navbar">
@@ -97,7 +107,7 @@
               <h3>Send us your Feedback</h3>
            </div>
             <div class="col-12 col-md-9">
-                <form action="">
+                <form action="../Controller/feedbackcontroller.php" method="POST">
                     <div class="form-group row">
                         <label for="firstnname" class="col-md-2 col-form-label">Firstname</label>
                     <div class="col-md-10">
@@ -135,9 +145,9 @@
                             </div>
                         </div>
                         <div class="col-md-3 offset-md-1">
-                            <select class="form-control" name="" id="">
-                                <option value="">Tel.</option>
-                                <option value="">Email</option>
+                            <select class="form-control" name="contactmethod" id="contactmethod">
+                                <option>Tel.</option>
+                                <option>Email</option>
                             </select>
                         </div>
                     </div>
@@ -200,5 +210,49 @@
            </div>
         </div>
     </footer>
+   <div class="modal fade" id="feedbackModal" tabindex="-1" role="dialog" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="feedbackModalLabel">Feedback Status</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- The success message will be placed here by PHP -->
+                    <?php 
+                        if (isset($_SESSION['message'])) {
+                            echo htmlspecialchars($_SESSION['message']);
+                        }
+                    ?>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- These script includes are essential and correct -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script> 
+
+    <!-- NEW CHANGE #2: ADD THE JAVASCRIPT TRIGGER -->
+    <?php
+        // This PHP block checks if a message exists after the page reloads.
+        if (isset($_SESSION['message'])) {
+            // If it exists, we echo out the JavaScript to show our modal.
+            echo '<script type="text/javascript">
+                $(document).ready(function(){
+                    $("#feedbackModal").modal("show");
+                });
+            </script>';
+            // It's very important to unset the message so the pop-up doesn't appear again on the next reload.
+            unset($_SESSION['message']);
+        }
+    ?>
 </body>
 </html>

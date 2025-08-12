@@ -1,7 +1,12 @@
 <?php 
 session_start();
- ?>
- <!DOCTYPE html>
+require_once '../Model/pdov2.php';
+require_once '../Model/branchmodal.php';
+
+// Get the branch data from the database
+$branches = get_all_branches($pdo);
+?>
+<!DOCTYPE html>
 <html>
 <head>
 	<meta charset="utf-8">
@@ -26,7 +31,7 @@ session_start();
                 <ul class="navbar-nav mr-auto">
                         <li class="nav-link active"><a class="nav-link" href="indexv2.php"><span class="fa fa-home"></span>Home</a></li>
                         <li class="nav-link"><a class="nav-link" href="aboutus.html"><span class="fa fa-info fa-lg"></span>About</a></li>
-                        <li class="nav-link"><a class="nav-link" href="contactus.html"><span class="fa fa-address-card fa-lg"></span>Contact</a></li>
+                        <li class="nav-link"><a class="nav-link" href="contactus.php"><span class="fa fa-address-card fa-lg"></span>Contact</a></li>
                     </ul>
                     <span class="navbar-text">
                         <a onclick="myfunction2()">
@@ -59,14 +64,11 @@ session_start();
         <div class="col-12">
             <div class="container">
             <?php 
-                                    unset($_SESSION['modal']);
-                                    if (isset($_SESSION['message'])) {
-                                        echo($_SESSION['message']);
-                                        unset($_SESSION['message']);
-                                        echo('<br>');
-                                    }
-                            ?>
-                            <br>
+                if (isset($_SESSION['message'])) {
+                    echo '<div class="alert alert-info">' . htmlspecialchars($_SESSION['message'], ENT_QUOTES, 'UTF-8') . '</div>';
+                    unset($_SESSION['message']);
+                }
+            ?>
             </div>                
             <div id="carouselExampleCaptions" class="carousel slide" data-ride="carousel">
   <ol class="carousel-indicators">
@@ -110,91 +112,35 @@ session_start();
     </div>
 
     <div class="row row-content">
-
-        <div class="col-7 col-sm-6">
+        <div class="col-12 col-md-6"> <!-- Adjusted column for better responsiveness -->
              <div>
                 <h2>Our Branch Location</h2>
-                            <div id="accordion">
+                <div id="accordion">
+                    <?php foreach ($branches as $index => $branch): ?>
                         <div class="card">
-                                <div class="card-header" role="tab" id="peterhead">
+                            <div class="card-header" role="tab" id="heading<?php echo $branch['branch_id']; ?>">
                                 <h3 class="mb-0">
-                                    <a data-toggle="collapse" data-target="#sakib">
-                                    Dhanmondi Branch<small></small>
+                                    <a class="<?php if ($index > 0) echo 'collapsed'; ?>" data-toggle="collapse" data-target="#collapse<?php echo $branch['branch_id']; ?>">
+                                        <?php echo htmlspecialchars($branch['branch_name']); ?>
                                     </a>
                                 </h3>
-                                </div>
-                                <div class="collapse show" id="sakib" data-parent="#accordion">
-                                    <div class="card-body">
-                                        <p class="d-none d-sm-block">
-                                            Address: RoadNo.8A, HouseNo.42 Keari Plaza
-                                            (opposite of Unimat, 2ndFloor) Dhaka 1209<br>
-                                            Manager: Rafsan Khan <br>
-                                            Contact: 029345776, +8801925779632
+                            </div>
+                            <div id="collapse<?php echo $branch['branch_id']; ?>" class="collapse <?php if ($index == 0) echo 'show'; ?>" data-parent="#accordion">
+                                <div class="card-body">
+                                    <p class="d-none d-sm-block">
+                                        <strong>Address:</strong> <?php echo htmlspecialchars($branch['address']); ?><br>
+                                        <strong>Manager:</strong> <?php echo htmlspecialchars($branch['manager_name']); ?> <br>
+                                        <strong>Contact:</strong> <?php echo htmlspecialchars($branch['contact_phone']); ?>
                                     </p>
-                                    </div>
                                 </div>
                             </div>
-                            <div class="card">
-                                    <div class="card-header" role="tab" id="dannyhead">
-                                    <h3 class="mb-0">
-                                        <a class="collapsed" data-toggle="collapse" data-target="#sadman">
-                                        Uttara Branch<small></small>
-                                        </a>
-                                    </h3>
-                                </div>
-                                <div class="collapse" id="sadman" data-parent="#accordion">
-                                    <div class="card-body">
-                                        <p class="d-none d-sm-block">
-                                            Address: Sector 13, 40 Gareeb-e-Nawaz Ave, Dhaka 1230<br>
-                                            Manager: Assaduzzaman Sumon <br>
-                                            Contact: 029345456, +8801834542089
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>                
-                            <div class="card">
-                                    <div class="card-header" role="tab" id="rkbm">
-                                    <h3 class="mb-0">
-                                        <a class="collapsed" data-toggle="collapse" data-target="#RKBM">
-                                        Banani Branch<small></small>
-                                        </a>
-                                    </h3>
-                                </div>
-                                <div class="collapse" id="RKBM" data-parent="#accordion">
-                                    <div class="card-body">
-                                        <p class="d-none d-sm-block">
-                                            Address: RoadNo.13E, House#135, Opposite of Prescription Point, Dhaka 1213 <br>
-                                            Manager: Joy Biswas <br>
-                                            Contact: 029345887, +8801925779986
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card">
-                                    <div class="card-header" role="tab" id="albertohead">
-                                    <h3 class="mb-0">
-                                        <a class="collapsed" data-toggle="collapse" data-target="#mauro">
-                                        Mirpur Branch<small></small>
-                                        </a>
-                                    </h3>
-                                </div>
-                                <div class="collapse" id="mauro" data-parent="#accordion">
-                                    <div class="card-body">
-                                        <p class="d-none d-sm-block">
-                                        Address: 2nd Floor, 25, Momota Plaza, Senpara, Mirpur-2, Dhaka-1216<br>
-                                        Manager: Nusrat Mahima <br>
-                                        Contact: 029345643, +8801711188876
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>              
+                        </div>
+                    <?php endforeach; ?>
                 </div>
-
-            
             </div>
-            
         </div>
-        <div class="col-5 col-sm-6">
+              
+        <div class="col-12 col-sm-6">
             <h2>Timing &amp; Prices</h2>
             <div class="table-responsive">
                 <table class="table table-striped">
@@ -230,7 +176,7 @@ session_start();
             </div>
         </div>
    </div> 
-
+</div>
 
 
    <div class="row row-content" align-items-center>
@@ -238,7 +184,7 @@ session_start();
              <div class="card" id="reserveform">
                  <h3 class="card-header bg-success text-white align-items-center">Make Reservation</h3>
                 <div class="card-body">
-                    <form action="makereservationcontroller.php" method="POST">
+                    <form action="../Controller/makereservationcontroller.php" method="POST">
                             <div class="form-group row">
                                     <label for="noofguest" class="col-md-2 col-form-label ">Number of Guests</label>
                                 <div class="col-md-1">
@@ -260,16 +206,16 @@ session_start();
                                         <input type="radio" class="form-control" value="6" name="numberofguest">6
                                 </div>
                                 <div class="col-md-1">
-                                        <input type="radio" class="form-control" value="6" name="numberofguest">7
+                                        <input type="radio" class="form-control" value="7" name="numberofguest">7
                                 </div>
                                 <div class="col-md-1">
-                                        <input type="radio" class="form-control" value="6" name="numberofguest">8
+                                        <input type="radio" class="form-control" value="8" name="numberofguest">8
                                 </div>
                                 <div class="col-md-1">
-                                        <input type="radio" class="form-control" value="6" name="numberofguest">9
+                                        <input type="radio" class="form-control" value="9" name="numberofguest">9
                                 </div>
                                 <div class="col-md-1">
-                                        <input type="radio" class="form-control" value="6" name="numberofguest">10
+                                        <input type="radio" class="form-control" value="10" name="numberofguest">10
                                 </div>
                                 </div>
                                 <div class="form-group row">
@@ -332,7 +278,7 @@ session_start();
                 <button type="button" class="close" onclick="myfunction3()">&times;</button>
             </div>
             <div class="modal-body">
-                <form>
+                <form action="login_handler.php" method="POST">
                     <div class="form-row">
                         <div class="form-group col-sm-4">
                                 <label class="sr-only" for="exampleInputEmail3">Email address</label>
@@ -374,7 +320,7 @@ session_start();
             <div class="card" id="reserveform">
                  <h3 class="card-header bg-info text-white align-items-center">Cancel Reservation</h3>
                 <div class="card-body">
-                    <form action="cancelreservationcontroller.php" method="POST">
+                    <form action="../Controller/cancelreservationcontroller.php" method="POST">
                                 <div class="form-group row">
                                         <label for="nameandemail" class="col-12 col-md-2 col-form-label">Name andPhone</label>
                                     <div class="col-12 col-md-4">
@@ -423,7 +369,7 @@ session_start();
                     <ul class="list-unstyled">
                         <li><a href="#">Home</a></li>
                         <li><a href="aboutus.html">About</a></li>
-                        <li><a href="contactus.html">Contact</a></li>
+                        <li><a href="contactus.php">Contact</a></li>
                     </ul>
                 </div>
                 <div class="col-7 col-sm-5">
